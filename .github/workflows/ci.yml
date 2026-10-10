@@ -17,15 +17,16 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: maven
+          cache-dependency-path: projects/treasury-liquidity-control-center/backend/pom.xml
       - name: Verify backend (unit + PostgreSQL integration tests)
-        working-directory: backend
+        working-directory: projects/treasury-liquidity-control-center/backend
         run: mvn -B verify
 
   frontend:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: frontend
+        working-directory: projects/treasury-liquidity-control-center/frontend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -41,6 +42,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build API image
-        run: docker build -t treasury-api:ci ./backend
+        run: docker build -t treasury-api:ci projects/treasury-liquidity-control-center/backend
       - name: Build frontend image
-        run: docker build -t treasury-frontend:ci ./frontend
+        run: docker build -t treasury-frontend:ci projects/treasury-liquidity-control-center/frontend
