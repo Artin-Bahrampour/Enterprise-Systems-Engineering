@@ -1,0 +1,52 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-treasury}
+      POSTGRES_USER: ${POSTGRES_USER:-treasury_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-treasury_app} -d ${POSTGRES_DB:-treasury}"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+    volumes:
+      - treasury_pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./backend
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-demo}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-treasury}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-treasury_app}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      TREASURY_USER: ${TREASURY_USER:-treasury-admin}
+      TREASURY_PASSWORD: ${TREASURY_PASSWORD:?Set TREASURY_PASSWORD in .env}
+      APP_DEMO_DATA_ENABLED: ${APP_DEMO_DATA:-true}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 4s
+      retries: 12
+      start_period: 30s
+    expose:
+      - "8080"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "8088:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  treasury_pgdata:

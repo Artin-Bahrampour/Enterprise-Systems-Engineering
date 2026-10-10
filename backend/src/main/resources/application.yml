@@ -1,0 +1,49 @@
+server:
+  port: 8080
+  shutdown: graceful
+spring:
+  application:
+    name: treasury-liquidity-control-center
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/treasury}
+    username: ${SPRING_DATASOURCE_USERNAME:treasury_app}
+    password: ${SPRING_DATASOURCE_PASSWORD:local-db-password-change-me}
+    hikari:
+      maximum-pool-size: 12
+      connection-timeout: 3000
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+  jackson:
+    default-property-inclusion: non_null
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+info:
+  app:
+    name: Treasury Liquidity Control Center
+    version: 1.0.0
+app:
+  security:
+    username: ${TREASURY_USER:treasury-admin}
+    password: ${TREASURY_PASSWORD:local-demo-password-change-me}
+  demo-data:
+    enabled: ${APP_DEMO_DATA_ENABLED:false}
+logging:
+  level:
+    root: INFO
+    dev.portfolio.treasury: INFO
